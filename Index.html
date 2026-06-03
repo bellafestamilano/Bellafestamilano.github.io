@@ -39,7 +39,7 @@ body {
 #splash {
   position: fixed; inset: 0;
   background: linear-gradient(135deg, var(--burgundy) 0%, var(--deep-rose) 50%, var(--rose) 100%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
   z-index: 1000;
   transition: opacity 0.8s ease;
 }
@@ -92,8 +92,7 @@ body {
 }
 
 /* MAIN LAYOUT */
-#app { display: none; min-height: 100vh; }
-#app.visible { display: block; }
+#app { display: block; min-height: 100vh; }
 
 /* TOP NAV */
 .top-nav {
@@ -576,7 +575,7 @@ textarea { resize: vertical; min-height: 80px; }
   <div class="splash-logo">Bella Festa<br><em>Milano</em></div>
   <div class="splash-sub">Event Planning · Wedding · Celebrations</div>
   <div class="splash-divider"></div>
-  <button class="splash-enter" onclick="enterApp()" ontouchend="event.preventDefault();enterApp()" style="touch-action:manipulation;-webkit-user-select:none;">Entra</button>
+  <button class="splash-enter" onclick="enterApp()">Entra</button>
 </div>
 
 <!-- SETUP SCREEN -->
@@ -857,17 +856,16 @@ let checklistAcquisti = [];
 
 // ===== INIT =====
 function enterApp() {
-  var sp = document.getElementById('splash');
-  var ap = document.getElementById('app');
-  if(sp) sp.style.display = 'none';
-  if(ap) { ap.style.display = 'flex'; ap.style.flexDirection = 'column'; ap.style.height = '100vh'; }
-  renderCalendar();
-  renderClients();
-  renderContabilita();
-  populateContractSelect();
-  initForm();
-  if(config && config.sheetId) updateSyncStatus('ok');
-  setTimeout(function(){ renderCalendar(); }, 300);
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+  setTimeout(() => {
+    renderCalendar();
+    renderClients();
+    renderContabilita();
+    populateContractSelect();
+    initForm();
+    if (config.sheetId) updateSyncStatus('ok');
+  }, 100);
 }
 
 function showSetupScreen() {
@@ -1598,5 +1596,14 @@ function getSrvData(){
   .contract-preview { box-shadow: none; border: none; }
 }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  try { renderCalendar(); } catch(e){}
+  try { renderClients(); } catch(e){}
+  try { renderContabilita(); } catch(e){}
+  try { populateContractSelect(); } catch(e){}
+  try { initForm(); } catch(e){}
+});
+</script>
 </body>
 </html>
