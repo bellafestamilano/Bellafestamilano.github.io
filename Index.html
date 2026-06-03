@@ -576,7 +576,7 @@ textarea { resize: vertical; min-height: 80px; }
   <div class="splash-logo">Bella Festa<br><em>Milano</em></div>
   <div class="splash-sub">Event Planning · Wedding · Celebrations</div>
   <div class="splash-divider"></div>
-  <button class="splash-enter" onclick="enterApp()" ontouchend="enterApp()" style="touch-action:manipulation;-webkit-user-select:none;user-select:none;">Entra</button>
+  <button class="splash-enter" onclick="enterApp()" ontouchend="event.preventDefault();enterApp()" style="touch-action:manipulation;-webkit-user-select:none;">Entra</button>
 </div>
 
 <!-- SETUP SCREEN -->
@@ -637,13 +637,6 @@ textarea { resize: vertical; min-height: 80px; }
         <span><span style="display:inline-block;width:10px;height:10px;background:var(--success);border-radius:2px;margin-right:4px"></span>Aziendale</span>
       </div>
     </div>
-    <div class="card" style="margin-bottom:0.75rem;">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div class="card-title" style="margin-bottom:0;">📅 Aggiungi Evento Personale</div>
-        <button class="btn btn-secondary btn-sm" onclick="openPersonalEvent()">+ Aggiungi</button>
-      </div>
-      <div style="font-size:0.72rem;color:#9B7E6A;margin-top:0.3rem;">Compleanni, visite mediche, appuntamenti personali</div>
-    </div>
     <div class="card">
       <div class="card-title"><span class="icon">📋</span> Prossimi eventi</div>
       <div id="upcoming-events"><div class="loading">Caricamento...</div></div>
@@ -682,10 +675,7 @@ textarea { resize: vertical; min-height: 80px; }
         <div class="form-group"><label>Nome Completo *</label><input type="text" id="f-nome" placeholder="es. Valentina Estupinan"></div>
         <div class="form-group"><label>Telefono</label><input type="tel" id="f-tel" placeholder="+39 ..."></div>
         <div class="form-group"><label>Email</label><input type="email" id="f-email" placeholder="cliente@email.com"></div>
-        <div class="form-group"><label>Alias / Nome Evento</label><input type="text" id="f-alias" placeholder="es. Matrimonio Valentina e Carlos"></div>
-        <div class="form-group"><label>Codice Fiscale</label><input type="text" id="f-cf" placeholder="RSSMRA80A01H501U" autocapitalize="characters"></div>
-        <div class="form-group full"><label>Indirizzo Cliente</label><input type="text" id="f-indirizzo" placeholder="Via Roma 1, Milano"></div>
-        <input type="hidden" id="f-social">
+        <div class="form-group"><label>Alias / Nome Evento</label><input type="text" id="f-alias" placeholder="es. Fiesta Superman de Diego"></div><input type="hidden" id="f-social">
       </div>
     </div>
 
@@ -738,7 +728,7 @@ textarea { resize: vertical; min-height: 80px; }
 
     <!-- FORNITORI -->
     <div class="card">
-      <div class="card-title"><span class="icon">🤝</span> Fornitori / Collaboratori (uso interno)</div>
+      <div class="card-title"><span class="icon">🤝</span> Fornitori (uso interno)</div>
       <div id="fornitori-container"></div>
       <button class="btn btn-secondary btn-sm" onclick="addFornitore()" style="margin-top:0.8rem">+ Aggiungi Fornitore</button>
     </div>
@@ -876,8 +866,8 @@ function enterApp() {
   renderContabilita();
   populateContractSelect();
   initForm();
-  if (config.sheetId) updateSyncStatus('ok');
-  setTimeout(function(){ renderCalendar(); }, 200);
+  if(config && config.sheetId) updateSyncStatus('ok');
+  setTimeout(function(){ renderCalendar(); }, 300);
 }
 
 function showSetupScreen() {
@@ -1062,11 +1052,7 @@ function addPagamento() {
   renderPagamenti();
 }
 function addFornitore() {
-  fornitori.push({ 
-    categoria: '', nome: '', azienda: '', aiutante: '',
-    descrizione: '', oraInizio: '', oraFine: '',
-    prezzoFornitore: '', acconto: ''
-  });
+  fornitori.push({ nome: '', servizio: '', descrizione: '', prezzoFornitore: '', acconto: '' });
   renderFornitori();
 }
 
@@ -1127,55 +1113,20 @@ function renderPagamenti() {
 function renderFornitori() {
   const c = document.getElementById('fornitori-container');
   if (!fornitori.length) { c.innerHTML = '<p style="font-size:0.82rem;color:var(--text-light)">Nessun fornitore aggiunto</p>'; return; }
-  const cats = [
-    {v:'foto_video', l:'📸 Foto e Video'},
-    {v:'dj_audio', l:'🎵 DJ / Audio / Musica'},
-    {v:'allestimento', l:'💐 Allestimento / Decorazione'},
-    {v:'pasticceria', l:'🎂 Pasticceria / Torta'},
-    {v:'effetti', l:'✨ Effetti Speciali / Luci'},
-    {v:'catering', l:'🍽️ Catering'},
-    {v:'limousine', l:'🚗 Limousine / Trasporto'},
-    {v:'makeup', l:'💄 Makeup'},
-    {v:'animazione', l:'🎪 Animazione / Show'},
-    {v:'ayudante', l:'👤 Ayudante / Collaboratore'},
-    {v:'altro', l:'📋 Altro'}
-  ];
-  c.innerHTML = fornitori.map((f,i) => {
+  c.innerHTML = `<div class="table-wrapper" style="margin-bottom:0.5rem"><table class="data-table"><thead><tr><th>Fornitore</th><th>Servizio</th><th>Descrizione</th><th>Prezzo €</th><th>Acconto €</th><th>Residuo</th><th></th></tr></thead><tbody>
+  ${fornitori.map((f,i) => {
     const res = (parseFloat(f.prezzoFornitore)||0) - (parseFloat(f.acconto)||0);
-    const catOptions = cats.map(cat => `<option value="${cat.v}"${f.categoria===cat.v?' selected':''}>${cat.l}</option>`).join('');
-    return `<div style="border:1px solid #E5D0BA;border-radius:10px;padding:1rem;margin-bottom:0.75rem;background:#FDFAF6;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-        <div style="font-size:0.85rem;font-weight:600;color:#6B3D2E;">${f.categoria ? cats.find(x=>x.v===f.categoria)?.l||'Fornitore' : 'Nuovo Fornitore'} ${i+1}</div>
-        <button class="btn btn-danger btn-sm" onclick="fornitori.splice(${i},1);renderFornitori()">✕</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Categoria</div>
-        <select onchange="fornitori[${i}].categoria=this.value;renderFornitori()" style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;">
-          <option value="">Seleziona...</option>${catOptions}
-        </select></div>
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Nome / Azienda</div>
-        <input type="text" value="${f.azienda||''}" oninput="fornitori[${i}].azienda=this.value" placeholder="es. Javier Bichofotos" style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;"></div>
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Nome Persona</div>
-        <input type="text" value="${f.nome||''}" oninput="fornitori[${i}].nome=this.value" placeholder="es. Javier" style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;"></div>
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Aiutante (opz.)</div>
-        <input type="text" value="${f.aiutante||''}" oninput="fornitori[${i}].aiutante=this.value" placeholder="es. Rudy, Candy..." style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;"></div>
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Ora Inizio</div>
-        <input type="time" value="${f.oraInizio||''}" oninput="fornitori[${i}].oraInizio=this.value" style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;"></div>
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Ora Fine</div>
-        <input type="time" value="${f.oraFine||''}" oninput="fornitori[${i}].oraFine=this.value" style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;"></div>
-      </div>
-      <div style="margin-bottom:0.5rem;"><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Descrizione Servizio</div>
-      <textarea oninput="fornitori[${i}].descrizione=this.value" placeholder="Dettagli del servizio, note importanti..." style="width:100%;font-size:0.8rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;min-height:60px;resize:vertical;">${f.descrizione||''}</textarea></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Prezzo Accordato €</div>
-        <input type="number" value="${f.prezzoFornitore||''}" oninput="fornitori[${i}].prezzoFornitore=this.value;renderFornitori()" placeholder="0" style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;"></div>
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Acconto Dato €</div>
-        <input type="number" value="${f.acconto||''}" oninput="fornitori[${i}].acconto=this.value;renderFornitori()" placeholder="0" style="width:100%;font-size:0.82rem;padding:5px 7px;border:1px solid #E5D0BA;border-radius:6px;background:#FAF6F0;"></div>
-        <div><div style="font-size:9px;text-transform:uppercase;color:#9B7E6A;margin-bottom:2px;">Saldo Restante</div>
-        <div style="font-size:0.88rem;font-weight:600;padding:5px 0;color:${res>0?'#C4965A':'#7BA695'};">€ ${res.toLocaleString('it-IT')}</div></div>
-      </div>
-    </div>`;
-  }).join('');
+    return `<tr>
+      <td><input type="text" value="${f.nome}" oninput="fornitori[${i}].nome=this.value" placeholder="es. Studio Foto Rossi" style="min-width:130px"></td>
+      <td><input type="text" value="${f.servizio}" oninput="fornitori[${i}].servizio=this.value" placeholder="es. Fotografo" style="min-width:100px"></td>
+      <td><input type="text" value="${f.descrizione}" oninput="fornitori[${i}].descrizione=this.value" placeholder="Dettagli..." style="min-width:130px"></td>
+      <td><input type="number" value="${f.prezzoFornitore}" oninput="fornitori[${i}].prezzoFornitore=this.value;renderFornitori()" placeholder="0" style="min-width:80px"></td>
+      <td><input type="number" value="${f.acconto}" oninput="fornitori[${i}].acconto=this.value;renderFornitori()" placeholder="0" style="min-width:80px"></td>
+      <td style="color:${res>0?'var(--warning)':'var(--success)'}">€ ${res.toLocaleString('it-IT')}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="fornitori.splice(${i},1);renderFornitori()">✕</button></td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
 }
 
 function updateTotals() {
@@ -1247,8 +1198,6 @@ function saveClient() {
     tel: document.getElementById('f-tel').value,
     email: document.getElementById('f-email').value,
     social:'',alias:document.getElementById('f-alias')?document.getElementById('f-alias').value:'',
-    cf:document.getElementById('f-cf')?document.getElementById('f-cf').value:'',
-    indirizzo:document.getElementById('f-indirizzo')?document.getElementById('f-indirizzo').value:'',
     tipo: document.getElementById('f-tipo').value,
     data: document.getElementById('f-data').value,
     oraInizio: document.getElementById('f-ora-inizio').value,
@@ -1639,137 +1588,6 @@ function getSrvData(){
   return res;
 }
 
-
-// ===== PERSONAL EVENTS =====
-var personalEvents = JSON.parse(localStorage.getItem('bfm_pe') || '[]');
-
-function openPersonalEvent() {
-  document.getElementById('pe-tipo').value = '';
-  document.getElementById('pe-titolo').value = '';
-  document.getElementById('pe-data').value = '';
-  document.getElementById('pe-ora').value = '';
-  document.getElementById('pe-note').value = '';
-  ['compleanno','medico','personale','altro'].forEach(t => {
-    var b = document.getElementById('pet-'+t);
-    if(b) b.style.background = '#FAF6F0';
-  });
-  document.getElementById('personal-event-modal').style.display = 'flex';
-}
-
-function closePersonalEvent() {
-  document.getElementById('personal-event-modal').style.display = 'none';
-}
-
-function setPET(tipo) {
-  document.getElementById('pe-tipo').value = tipo;
-  ['compleanno','medico','personale','altro'].forEach(t => {
-    var b = document.getElementById('pet-'+t);
-    if(b) b.style.background = t===tipo ? '#F0E6D3' : '#FAF6F0';
-    if(b) b.style.borderColor = t===tipo ? '#B8896A' : '#E5D0BA';
-  });
-}
-
-function savePersonalEvent() {
-  var titolo = document.getElementById('pe-titolo').value.trim();
-  var data = document.getElementById('pe-data').value;
-  var tipo = document.getElementById('pe-tipo').value;
-  if(!titolo || !data) { alert('Inserisci titolo e data!'); return; }
-  personalEvents.push({
-    id: Date.now().toString(),
-    titolo: titolo,
-    tipo: tipo || 'altro',
-    data: data,
-    ora: document.getElementById('pe-ora').value,
-    note: document.getElementById('pe-note').value
-  });
-  localStorage.setItem('bfm_pe', JSON.stringify(personalEvents));
-  closePersonalEvent();
-  renderCalendar();
-  showNotif('Evento personale aggiunto! 🌸');
-}
-
-// ===== FICHA TECNICA FORNITORE PRINT =====
-function printFichaTecnica(clientId) {
-  var c = clients.find(x => x.id === clientId);
-  if(!c || !c.fornitori || !c.fornitori.length) { alert('Nessun fornitore per questo cliente'); return; }
-  
-  var catIcons = {foto_video:'📸',dj_audio:'🎵',allestimento:'💐',pasticceria:'🎂',effetti:'✨',catering:'🍽️',limousine:'🚗',makeup:'💄',animazione:'🎪',ayudante:'👤',altro:'📋'};
-  var catLabels = {foto_video:'Foto e Video',dj_audio:'DJ / Audio / Musica',allestimento:'Allestimento / Decorazione',pasticceria:'Pasticceria / Torta',effetti:'Effetti Speciali / Luci',catering:'Catering',limousine:'Limousine / Trasporto',makeup:'Makeup',animazione:'Animazione / Show',ayudante:'Ayudante / Collaboratore',altro:'Altro'};
-  
-  var ficheHtml = c.fornitori.map(f => {
-    var res = (parseFloat(f.prezzoFornitore)||0) - (parseFloat(f.acconto)||0);
-    return \`
-    <div style="page-break-after:always;padding:2rem;font-family:'Georgia',serif;max-width:700px;margin:0 auto;">
-      <div style="border-top:4px solid #6B3D2E;padding-top:1.5rem;margin-bottom:1.5rem;">
-        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem;">
-          <div style="font-size:1.8rem;">\${catIcons[f.categoria]||'📋'}</div>
-          <div>
-            <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#9B7E6A;">Bella Festa Milano — Scheda Tecnica Fornitore</div>
-            <div style="font-size:1.4rem;font-weight:600;color:#6B3D2E;">\${catLabels[f.categoria]||'Fornitore'}</div>
-          </div>
-        </div>
-        <div style="font-size:0.75rem;color:#9B7E6A;border-top:1px solid #E5D0BA;padding-top:0.5rem;">
-          Evento: <strong>\${c.alias||c.nome}</strong> &nbsp;|&nbsp; Data: <strong>\${c.data ? new Date(c.data+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'}) : '-'}</strong> &nbsp;|&nbsp; Location: <strong>\${c.location||'-'}</strong>
-        </div>
-      </div>
-      
-      <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem;font-size:0.85rem;">
-        <tr style="background:#FAF6F0;">
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;width:35%;">Fornitore / Azienda</td>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;">\${f.azienda||'-'}</td>
-        </tr>
-        <tr>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;">Persona di Riferimento</td>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;">\${f.nome||'-'}</td>
-        </tr>
-        \${f.aiutante ? \`<tr style="background:#FAF6F0;"><td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;">Aiutante / Assistente</td><td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;">\${f.aiutante}</td></tr>\` : ''}
-        <tr style="background:#FAF6F0;">
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;">Orario Inizio Servizio</td>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-size:1.05rem;font-weight:600;color:#2C1F14;">\${f.oraInizio||'-'}</td>
-        </tr>
-        <tr>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;">Orario Fine Servizio</td>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-size:1.05rem;font-weight:600;color:#2C1F14;">\${f.oraFine||'-'}</td>
-        </tr>
-        <tr style="background:#FAF6F0;">
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;">Prezzo Accordato</td>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;">€ \${(parseFloat(f.prezzoFornitore)||0).toLocaleString('it-IT')}</td>
-        </tr>
-        <tr>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;">Acconto Dato</td>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;">€ \${(parseFloat(f.acconto)||0).toLocaleString('it-IT')}</td>
-        </tr>
-        <tr style="background:#FFF8F0;">
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;">Saldo da Pagare</td>
-          <td style="padding:0.5rem 0.75rem;border:1px solid #E5D0BA;font-weight:600;color:\${res>0?'#C4965A':'#7BA695'};">€ \${res.toLocaleString('it-IT')} <span style="font-size:0.75rem;color:#9B7E6A;">(il giorno dell'evento)</span></td>
-        </tr>
-      </table>
-      
-      \${f.descrizione ? \`<div style="background:#FAF6F0;border:1px solid #E5D0BA;border-radius:8px;padding:1rem;margin-bottom:1.5rem;"><div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#9B7E6A;margin-bottom:0.5rem;">Note e Descrizione Servizio</div><div style="font-size:0.85rem;line-height:1.7;">\${f.descrizione}</div></div>\` : ''}
-      
-      <div style="background:#2C1F14;color:#FAF6F0;border-radius:8px;padding:1.2rem;margin-top:1rem;">
-        <div style="font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:#C4A87A;margin-bottom:0.75rem;">👗 Dress Code — Bella Festa Milano</div>
-        <div style="font-size:0.82rem;line-height:1.8;">
-          <strong style="color:#C4A87A;">Total Black</strong> — Pantalón de vestir o jeans negro · Zapatillas negras · Polo o camisa negra<br>
-          Se disponibile: uniforme Bella Festa Milano (se lo proporcionará el día del evento)<br>
-          <span style="color:#C4A87A;">Mujeres:</span> Cabello recogido · Maquillaje sutil y delicado<br>
-          <span style="color:#C4A87A;">Hombres:</span> Peinado con gel · Patillado cuidado
-        </div>
-        <div style="font-size:0.7rem;color:#9B7E6A;margin-top:0.75rem;font-style:italic;">Esta es una sugerencia obligatoria. Gracias por hacer parte del equipo Bella Festa Milano 🌸</div>
-      </div>
-      
-      <div style="text-align:center;margin-top:1.5rem;font-size:0.65rem;color:#9B7E6A;border-top:1px solid #E5D0BA;padding-top:0.75rem;">
-        Bella Festa Milano · bellafestamilano@icloud.com · +39 380 752 8684 · @Bellafestamilano
-      </div>
-    </div>\`;
-  }).join('');
-  
-  var w = window.open('', '_blank');
-  w.document.write('<html><head><title>Schede Tecniche Fornitori</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#fff;}</style></head><body>'+ficheHtml+'</body></html>');
-  w.document.close();
-  setTimeout(function(){ w.print(); }, 500);
-}
-
 <style>
 @media print {
   body > *:not(#app) { display: none; }
@@ -1780,46 +1598,5 @@ function printFichaTecnica(clientId) {
   .contract-preview { box-shadow: none; border: none; }
 }
 </style>
-
-<!-- MODAL EVENTO PERSONALE -->
-<div class="modal-overlay" id="personal-event-modal" style="display:none">
-  <div class="modal" style="max-width:380px;">
-    <div class="modal-header">
-      <h3 class="modal-title">Evento Personale</h3>
-      <button class="modal-close" onclick="closePersonalEvent()">✕</button>
-    </div>
-    <div style="padding:0 1.5rem 1.5rem;">
-      <div class="form-group" style="margin-bottom:0.75rem;">
-        <label>Tipo</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.4rem;">
-          <button type="button" id="pet-compleanno" onclick="setPET('compleanno')" style="padding:0.6rem;border:1px solid #E5D0BA;border-radius:8px;font-size:0.8rem;background:#FAF6F0;cursor:pointer;">🎂 Compleanno</button>
-          <button type="button" id="pet-medico" onclick="setPET('medico')" style="padding:0.6rem;border:1px solid #E5D0BA;border-radius:8px;font-size:0.8rem;background:#FAF6F0;cursor:pointer;">🏥 Medico</button>
-          <button type="button" id="pet-personale" onclick="setPET('personale')" style="padding:0.6rem;border:1px solid #E5D0BA;border-radius:8px;font-size:0.8rem;background:#FAF6F0;cursor:pointer;">💅 Personale</button>
-          <button type="button" id="pet-altro" onclick="setPET('altro')" style="padding:0.6rem;border:1px solid #E5D0BA;border-radius:8px;font-size:0.8rem;background:#FAF6F0;cursor:pointer;">📝 Altro</button>
-        </div>
-        <input type="hidden" id="pe-tipo" value="">
-      </div>
-      <div class="form-group" style="margin-bottom:0.75rem;">
-        <label>Titolo *</label>
-        <input type="text" id="pe-titolo" placeholder="es. Compleanno Mamma, Dentista..." style="margin-top:0.3rem;">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.75rem;">
-        <div class="form-group">
-          <label>Data *</label>
-          <input type="date" id="pe-data" style="margin-top:0.3rem;">
-        </div>
-        <div class="form-group">
-          <label>Ora (opz.)</label>
-          <input type="time" id="pe-ora" style="margin-top:0.3rem;">
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:1rem;">
-        <label>Note</label>
-        <textarea id="pe-note" placeholder="Note aggiuntive..." style="margin-top:0.3rem;min-height:50px;resize:vertical;"></textarea>
-      </div>
-      <button class="btn btn-primary" onclick="savePersonalEvent()" style="width:100%;">Salva Evento</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
