@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bella Festa">
+<title>Bella Festa Milano</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bur:#6B3D2E;--rose:#B8896A;--cream:#FAF6F0;--warm:#FDF9F4;
+  --border:#EFE3D0;--text:#2C1F14;--light:#9B7E6A;--green:#7BA695;--gold:#C4A87A;
+}
+html,body{height:100%;overflow:hidden;font-family:'Jost',sans-serif;background:var(--cream);color:var(--text)}
+/* APP LAYOUT */
+#app{display:flex;flex-direction:column;height:100vh}
+.topbar{background:var(--bur);color:var(--cream);padding:0 1rem;height:48px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.brand{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;letter-spacing:.05em}
+.brand em{font-style:italic;color:var(--gold)}
+.tabbar{display:flex;overflow-x:auto;background:var(--warm);border-bottom:1px solid var(--border);flex-shrink:0;scrollbar-width:none}
+.tabbar::-webkit-scrollbar{display:none}
+.tb{background:none;border:none;border-bottom:2px solid transparent;font-family:'Jost',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--light);padding:.7rem .9rem;cursor:pointer;white-space:nowrap;flex-shrink:0;touch-action:manipulation}
+.tb.on{color:var(--bur);border-bottom-color:var(--rose)}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.panel{display:none;padding:1rem;max-width:800px;margin:0 auto;padding-bottom:5rem}
+.panel.on{display:block}
+/* CARDS */
+.card{background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.85rem}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--bur);margin-bottom:.75rem;font-weight:500}
+/* BUTTONS */
+.btn{font-family:'Jost',sans-serif;font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;border:none;border-radius:8px;padding:.65em 1.4em;cursor:pointer;touch-action:manipulation;display:inline-flex;align-items:center;gap:.4em}
+.btn-p{background:var(--bur);color:var(--cream)}
+.btn-s{background:transparent;border:1px solid var(--rose);color:var(--rose)}
+.btn-g{background:var(--green);color:#fff}
+.btn-d{background:#B06555;color:#fff}
+.btn-sm{padding:.45em .9em;font-size:.6rem}
+.btn-full{width:100%;justify-content:center}
+/* FORMS */
+.fg{display:flex;flex-direction:column;gap:.2rem;margin-bottom:.65rem}
+.fg label{font-size:.58rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--light)}
+.fg input,.fg select,.fg textarea{font-family:'Jost',sans-serif;font-size:.88rem;color:var(--text);background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:.55rem .75rem;width:100%;-webkit-appearance:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--rose)}
+.fg textarea{resize:vertical;min-height:65px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.full{grid-column:1/-1}
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.cal-month{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--bur);text-transform:capitalize}
+.cal-arr{background:none;border:1px solid var(--border);border-radius:7px;padding:.28em .7em;cursor:pointer;color:var(--bur);font-size:.9rem;touch-action:manipulation}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:.5rem}
+.cal-dn{text-align:center;font-size:.55rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--light);padding:.3rem 0}
+.cal-day{background:var(--warm);border:1px solid var(--border);border-radius:7px;min-height:48px;padding:.25rem;cursor:pointer;touch-action:manipulation}
+.cal-day.empty{background:transparent;border-color:transparent;cursor:default}
+.cal-day.today{border-color:var(--rose);background:#FFF8F4}
+.cal-day.has-ev{background:#FFF0E8}
+.cal-day .dn{font-size:.65rem;font-weight:600;color:var(--bur);display:block}
+.cal-day.today .dn{color:var(--rose)}
+.cal-ev{font-size:.5rem;background:var(--bur);color:#fff;border-radius:3px;padding:1px 3px;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal-ev.quinceanos{background:#9B5E7A}
+.cal-ev.fiesta_infantil{background:#7A8FA6}
+.cal-ev.cumpleanos{background:#9B7E4A}
+.cal-ev.baby_shower{background:#7BA695}
+.cal-ev.empresarial{background:#5C4030}
+.cal-ev.ceremonia{background:#8B7355}
+.cal-ev.personal{background:#8A7AAA}
+/* CLIENT CARDS */
+.cli-card{background:var(--warm);border:1px solid var(--border);border-radius:11px;padding:.9rem 1rem;margin-bottom:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:.75rem;touch-action:manipulation}
+.cli-card:active{background:#FFF0E8}
+.cli-name{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--bur)}
+.cli-sub{font-size:.72rem;color:var(--light);margin-top:.1rem}
+.cli-amt{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--bur);text-align:right}
+.cli-res{font-size:.68rem;margin-top:.1rem;text-align:right}
+/* OVERLAY / MODAL */
+.overlay{position:fixed;inset:0;background:rgba(44,31,20,.5);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--warm);border-radius:16px 16px 0 0;width:100%;max-width:680px;max-height:92vh;overflow-y:auto;padding:1.2rem}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--bur)}
+.modal-close{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--light);touch-action:manipulation}
+/* FINANCE BOXES */
+.fin-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.85rem}
+.fin-box{background:var(--warm);border:1px solid var(--border);border-radius:10px;padding:.75rem;text-align:center}
+.fin-lbl{font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--light);margin-bottom:.25rem}
+.fin-val{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600}
+.vt{color:var(--bur)}.vg{color:var(--green)}.vw{color:var(--gold)}.vr{color:#B06555}
+/* SERVICES CHECKBOXES */
+.srv-item{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--border)}
+.srv-item:last-child{border-bottom:none}
+.srv-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--bur);flex-shrink:0;margin-top:2px;cursor:pointer}
+.srv-item label{font-size:.85rem;flex:1;cursor:pointer}
+/* FORNITORE */
+.forn-item{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:.85rem;margin-bottom:.65rem}
+/* NOTIF */
+.notif{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bur);color:var(--cream);padding:.7rem 1.3rem;border-radius:9px;font-size:.76rem;z-index:999;transition:transform .3s;white-space:nowrap}
+.notif.show{transform:translateX(-50%) translateY(0)}
+.notif.err{background:#B06555}
+/* CONTRACT */
+.contract{background:#fff;border-radius:12px;padding:1.5rem;position:relative;overflow:hidden}
+.contract::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--bur),var(--rose),var(--gold))}
+/* TABLE */
+.twrap{overflow-x:auto;border-radius:9px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{background:var(--bur);color:var(--cream);padding:.55rem .7rem;text-align:left;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+td{padding:.55rem .7rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.tr-tot td{background:var(--cream);font-weight:600;color:var(--bur);border-top:2px solid var(--border)}
+/* BADGES */
+.badge{font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.18em .62em;border-radius:20px;display:inline-block}
+.b-ok{background:#D8EDE8;color:#3D7A6E}.b-warn{background:#F5E4CC;color:#8B5E2A}.b-no{background:#F0D8CC;color:#8B4030}
+@media(max-width:500px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
+@media print{
+  body>*:not(#app){display:none!important}
+  .topbar,.tabbar,.btn-group-print{display:none!important}
+  .content{overflow:visible!important;height:auto!important}
+  .panel{padding:0!important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="brand">Bella Festa <em>Milano</em></div>
+    <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="showSetup()">Config</button>
+  </div>
+  <nav class="tabbar" id="tabbar">
+    <button class="tb on" onclick="showTab('calendario',this)">📅 Calendario</button>
+    <button class="tb" onclick="showTab('clienti',this)">👤 Clienti</button>
+    <button class="tb" onclick="showTab('contabilita',this)">💶 Contabilità</button>
+    <button class="tb" onclick="showTab('contratto',this)">📄 Contratto</button>
+  </nav>
+  <div class="content">
+
+    <!-- CALENDARIO -->
+    <div class="panel on" id="panel-calendario">
+      <div class="card">
+        <div class="cal-nav">
+          <button class="cal-arr" onclick="chMon(-1)">&#8249;</button>
+          <div class="cal-month" id="cal-title"></div>
+          <button class="cal-arr" onclick="chMon(1)">&#8250;</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+          <div class="card-title" style="margin-bottom:0">Prossimi eventi</div>
+          <button class="btn btn-s btn-sm" onclick="openPersonalForm()">+ Personale</button>
+        </div>
+        <div id="upcoming"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTI -->
+    <div class="panel" id="panel-clienti">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--bur)">Clienti</div>
+        <button class="btn btn-p btn-sm" onclick="openClientForm(null)">+ Nuevo</button>
+      </div>
+      <input id="srch" type="text" placeholder="Cerca..." oninput="filterCli()" autocorrect="off"
+        style="font-family:'Jost',sans-serif;font-size:.88rem;color:var(--text);background:var(--warm);border:1px solid var(--border);border-radius:8px;padding:.55rem .75rem;width:100%;margin-bottom:.85rem;-webkit-appearance:none">
+      <div id="cli-list"></div>
+    </div>
+
+    <!-- CONTABILITA -->
+    <div class="panel" id="panel-contabilita">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--bur);margin-bottom:.85rem">Contabilità</div>
+      <div class="fin-row" id="fin-summary"></div>
+      <div class="card">
+        <div class="card-title">Riepilogo per Cliente</div>
+        <div class="twrap">
+          <table><thead><tr><th>Cliente</th><th>Tipo</th><th>Data</th><th>Totale</th><th>Versato</th><th>Residuo</th><th>Stato</th></tr></thead>
+          <tbody id="cont-table"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTRATTO -->
+    <div class="panel" id="panel-contratto">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--bur);margin-bottom:.85rem">Contratto</div>
+      <div class="card">
+        <div class="fg"><label>Seleziona Cliente</label>
+          <select id="con-sel" onchange="renderContract()" style="font-family:'Jost',sans-serif;font-size:.88rem;color:var(--text);background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:.55rem .75rem;-webkit-appearance:none">
+            <option value="">Scegli cliente...</option>
+          </select>
+        </div>
+      </div>
+      <div id="contract-out"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- OVERLAY: CLIENT DETAIL -->
+<div class="overlay" id="ov-detail">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="detail-title">Cliente</div>
+      <button class="modal-close" onclick="closeOv('ov-detail')">✕</button>
+    </div>
+    <div id="detail-body"></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.85rem">
+      <button class="btn btn-p btn-sm" onclick="editFromDetail()">Modifica</button>
+      <button class="btn btn-s btn-sm" onclick="contractFromDetail()">Contratto</button>
+      <button class="btn btn-d btn-sm" onclick="deleteClient()">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: CLIENT FORM -->
+<div class="overlay" id="ov-form">
+  <div class="modal" style="border-radius:16px;max-height:95vh">
+    <div class="modal-hd">
+      <div class="modal-title" id="form-title">Nuevo Cliente</div>
+      <button class="modal-close" onclick="closeOv('ov-form')">✕</button>
+    </div>
+    <div id="form-body"></div>
+  </div>
+</div>
+
+<!-- OVERLAY: PERSONAL EVENT -->
+<div class="overlay" id="ov-personal">
+  <div class="modal" style="border-radius:16px">
+    <div class="modal-hd">
+      <div class="modal-title">Evento Personale</div>
+      <button class="modal-close" onclick="closeOv('ov-personal')">✕</button>
+    </div>
+    <div class="g2">
+      <div class="fg full"><label>Tipo</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+          <button type="button" id="pet-compleanno" onclick="setPET('compleanno',this)" class="btn btn-s btn-sm">🎂 Compleanno</button>
+          <button type="button" id="pet-medico" onclick="setPET('medico',this)" class="btn btn-s btn-sm">🏥 Medico</button>
+          <button type="button" id="pet-personale" onclick="setPET('personale',this)" class="btn btn-s btn-sm">💅 Personale</button>
+          <button type="button" id="pet-altro" onclick="setPET('altro',this)" class="btn btn-s btn-sm">📝 Altro</button>
+        </div>
+        <input type="hidden" id="pe-tipo">
+      </div>
+      <div class="fg full"><label>Titolo *</label><input type="text" id="pe-titolo" autocorrect="off"></div>
+      <div class="fg"><label>Data *</label><input type="date" id="pe-data"></div>
+      <div class="fg"><label>Ora</label><input type="time" id="pe-ora"></div>
+      <div class="fg full"><label>Note</label><textarea id="pe-note"></textarea></div>
+    </div>
+    <button class="btn btn-p btn-full" style="margin-top:.75rem" onclick="savePersonal()">Salva</button>
+  </div>
+</div>
+
+<!-- OVERLAY: SETUP -->
+<div class="overlay" id="ov-setup">
+  <div class="modal" style="border-radius:16px">
+    <div class="modal-hd">
+      <div class="modal-title">Configurazione</div>
+      <button class="modal-close" onclick="closeOv('ov-setup')">✕</button>
+    </div>
+    <p style="font-size:.8rem;color:var(--light);margin-bottom:.75rem">Google Sheets sync (opzionale)</p>
+    <div class="fg"><label>Sheet ID</label><input type="text" id="s-id"></div>
+    <div class="fg"><label>Service Account Email</label><input type="text" id="s-email"></div>
+    <div class="fg"><label>Private Key</label><textarea id="s-key" style="min-height:80px;font-size:.65rem"></textarea></div>
+    <button class="btn btn-p btn-full" style="margin-top:.5rem" onclick="saveSetup()">Salva</button>
+    <button class="btn btn-s btn-full" style="margin-top:.4rem" onclick="closeOv('ov-setup')">Chiudi</button>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ===== DATA =====
+var clients = JSON.parse(localStorage.getItem('bfm_c')||'[]');
+var personalEvs = JSON.parse(localStorage.getItem('bfm_pe')||'[]');
+var cfg = JSON.parse(localStorage.getItem('bfm_cfg')||'{}');
+var cM = new Date().getMonth(), cY = new Date().getFullYear();
+var curId = null;
+var MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+var DAYS = ['L','M','M','G','V','S','D'];
+
+var SERVICES_BY_CAT = {"matrimonio": ["Allestimento Backdrop Centrale", "Allestimento Location Completa", "Allestimento Chiesa", "Servizio Fotografico e Video", "Servizio DJ e Audio", "Sassofonista / Trombettista / Pianista", "Coro / Cantanti", "Gruppo Musicale / Orchestra", "Show Hora Loca", "Pasticceria Fina e Dolci Tematici", "Noleggio Sala Ricevimento", "Effetti Speciali e Luci", "Bomboniere / Recuerdos", "Carrito Candy Bar", "Trasporto, Montaggio e Smontaggio", "Coordinamento e Regia Evento", "Maestro de Ceremonia", "Servizio Limousine", "Cancelleria Creativa", "Servizio Makeup", "Servizio Barman", "Mesa de Dulces y Aperitivos"], "quinceanos": ["Allestimento Backdrop Centrale", "Allestimento Location Completa", "Servizio Fotografico e Video", "Servizio DJ e Audio", "Show Hora Loca", "Pasticceria Fina e Dolci Tematici", "Noleggio Sala Ricevimento", "Effetti Speciali e Luci", "Bomboniere / Recuerdos", "Carrito Candy Bar", "Trasporto, Montaggio e Smontaggio", "Coordinamento e Regia Evento", "Maestro de Ceremonia", "Servizio Limousine", "Cancelleria Creativa", "Servizio Makeup", "Servizio Barman", "Mesa de Dulces y Aperitivos"], "fiesta_infantil": ["Allestimento Backdrop Centrale", "Servizio Fotografico e Video", "Show Infantile", "Pasticceria Fina e Dolci Tematici", "Effetti Speciali e Luci", "Gadget Infantili", "Carrito Candy Bar", "Trasporto, Montaggio e Smontaggio", "Mesa de Dulces y Aperitivos"], "cumpleanos": ["Allestimento Backdrop Centrale", "Allestimento Location Completa", "Servizio Fotografico e Video", "Servizio DJ e Audio", "Show Hora Loca", "Pasticceria Fina e Dolci Tematici", "Effetti Speciali e Luci", "Carrito Candy Bar", "Trasporto, Montaggio e Smontaggio", "Servizio Barman", "Mesa de Dulces y Aperitivos"], "baby_shower": ["Allestimento Backdrop Centrale", "Servizio Fotografico e Video", "Impianto Audio", "Show Baby Shower", "Pasticceria Fina e Dolci Tematici", "Effetti Speciali e Luci", "Bomboniere / Recuerdos", "Carrito Candy Bar", "Trasporto, Montaggio e Smontaggio", "Cancelleria Creativa"], "empresarial": ["Allestimento Backdrop Centrale", "Allestimento Location Completa", "Servizio Fotografico e Video", "Servizio DJ e Audio", "Impianto Audio", "Catering", "Pasticceria Fina e Dolci Tematici", "Effetti Speciali e Luci", "Trasporto, Montaggio e Smontaggio", "Coordinamento e Regia Evento", "Servizio Barman", "Mesa de Dulces y Aperitivos"], "ceremonia": ["Allestimento Backdrop Centrale", "Servizio Fotografico e Video", "Pasticceria Fina e Dolci Tematici", "Bomboniere / Recuerdos", "Trasporto, Montaggio e Smontaggio", "Cancelleria Creativa"]};
+
+var FORN_CATS = [{"v": "foto_video", "l": "\ud83d\udcf8 Foto e Video"}, {"v": "dj_audio", "l": "\ud83c\udfb5 DJ / Audio / Musica"}, {"v": "allestimento", "l": "\ud83d\udc90 Allestimento / Decorazione"}, {"v": "pasticceria", "l": "\ud83c\udf82 Pasticceria / Torta"}, {"v": "effetti", "l": "\u2728 Effetti Speciali / Luci"}, {"v": "catering", "l": "\ud83c\udf7d\ufe0f Catering"}, {"v": "limousine", "l": "\ud83d\ude97 Limousine / Trasporto"}, {"v": "makeup", "l": "\ud83d\udc84 Makeup"}, {"v": "animazione", "l": "\ud83c\udfaa Animazione / Show"}, {"v": "ayudante", "l": "\ud83d\udc64 Ayudante / Collaboratore"}, {"v": "altro", "l": "\ud83d\udccb Altro"}];
+
+// ===== UTILS =====
+function sv(){localStorage.setItem('bfm_c',JSON.stringify(clients));}
+function svPE(){localStorage.setItem('bfm_pe',JSON.stringify(personalEvs));}
+function gv(id){var e=document.getElementById(id);return e?e.value:'';}
+function sv2(id,v){var e=document.getElementById(id);if(e)e.value=v||'';}
+function fd(d){if(!d)return'-';return new Date(d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'long',year:'numeric'});}
+function tl(t){var m={matrimonio:'Matrimonio',quinceanos:'Quinceañera',fiesta_infantil:'Fiesta Infantil',cumpleanos:'Cumpleaños',baby_shower:'Baby Shower/Gender Reveal',empresarial:'Evento Empresarial',ceremonia:'Ceremonia'};return m[t]||t||'-';}
+function note(msg,err){var n=document.getElementById('notif');n.textContent=msg;n.className='notif show'+(err?' err':'');setTimeout(function(){n.className='notif';},3500);}
+function closeOv(id){document.getElementById(id).classList.remove('on');}
+function tot(c){return(c.services||[]).reduce(function(s,x){return s+(parseFloat(x.pc)||0);},0);}
+function paid(c){return(c.pagamenti||[]).filter(function(p){return p.stato==='Pagato';}).reduce(function(s,x){return s+(parseFloat(x.imp)||0);},0);}
+
+// ===== TABS =====
+function showTab(name,btn){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('panel-'+name).classList.add('on');
+  if(btn)btn.classList.add('on');
+  if(name==='calendario')rCal();
+  if(name==='clienti')rCli();
+  if(name==='contabilita')rCont();
+  if(name==='contratto')pConSel();
+}
+
+// ===== CALENDAR =====
+function rCal(){
+  document.getElementById('cal-title').textContent = MONTHS[cM]+' '+cY;
+  var g = document.getElementById('cal-grid');
+  g.innerHTML = DAYS.map(function(d){return '<div class="cal-dn">'+d+'</div>';}).join('');
+  var first = new Date(cY,cM,1).getDay(), off = first===0?6:first-1;
+  for(var i=0;i<off;i++) g.innerHTML += '<div class="cal-day empty"></div>';
+  var days = new Date(cY,cM+1,0).getDate(), td = new Date();
+  for(var d=1;d<=days;d++){
+    var iT = d===td.getDate()&&cM===td.getMonth()&&cY===td.getFullYear();
+    var ds = cY+'-'+String(cM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var dc = clients.filter(function(c){return c.data===ds;});
+    var dp = personalEvs.filter(function(e){return e.data===ds;});
+    var evH = dc.map(function(c){return '<div class="cal-ev '+(c.tipo||'')+'">'+(c.alias||c.nome).split(' ')[0]+'</div>';}).join('');
+    evH += dp.map(function(e){return '<div class="cal-ev personal">'+e.titolo.substring(0,6)+'</div>';}).join('');
+    var cls = 'cal-day'+(iT?' today':'')+(dc.length||dp.length?' has-ev':'');
+    g.innerHTML += '<div class="'+cls+'" onclick="onDay(''+ds+'')" style="touch-action:manipulation"><span class="dn">'+d+'</span>'+evH+'</div>';
+  }
+  rUpcoming();
+}
+function chMon(d){cM+=d;if(cM>11){cM=0;cY++;}if(cM<0){cM=11;cY--;}rCal();}
+function onDay(ds){
+  var c = clients.find(function(x){return x.data===ds;});
+  if(c){openDetail(c.id);return;}
+  var pe = personalEvs.filter(function(e){return e.data===ds;});
+  if(pe.length){note(pe.map(function(e){return e.titolo;}).join(', '));return;}
+}
+function rUpcoming(){
+  var td=new Date();td.setHours(0,0,0,0);
+  var up=clients.filter(function(c){return c.data&&new Date(c.data+'T12:00:00')>=td;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,5);
+  var el=document.getElementById('upcoming');
+  if(!up.length){el.innerHTML='<p style="font-size:.8rem;color:var(--light)">Nessun evento in programma</p>';return;}
+  el.innerHTML=up.map(function(c){
+    var d=Math.ceil((new Date(c.data+'T12:00:00')-td)/86400000);
+    return '<div class="cli-card" onclick="openDetail(''+c.id+'')"><div><div class="cli-name">'+(c.alias||c.nome)+'</div><div class="cli-sub">'+tl(c.tipo)+' · '+fd(c.data)+'</div></div><div style="font-size:.82rem;color:'+(d<=7?'#B06555':'var(--rose)')+'">fra '+d+'gg</div></div>';
+  }).join('');
+}
+
+// ===== PERSONAL EVENTS =====
+function openPersonalForm(){
+  document.getElementById('pe-tipo').value='';
+  document.getElementById('pe-titolo').value='';
+  document.getElementById('pe-data').value='';
+  document.getElementById('pe-ora').value='';
+  document.getElementById('pe-note').value='';
+  ['compleanno','medico','personale','altro'].forEach(function(t){
+    var b=document.getElementById('pet-'+t);
+    if(b){b.classList.remove('btn-p');b.classList.add('btn-s');}
+  });
+  document.getElementById('ov-personal').classList.add('on');
+}
+function setPET(tipo,btn){
+  document.getElementById('pe-tipo').value=tipo;
+  ['compleanno','medico','personale','altro'].forEach(function(t){
+    var b=document.getElementById('pet-'+t);
+    if(b){b.classList.remove('btn-p');b.classList.add('btn-s');}
+  });
+  btn.classList.remove('btn-s');btn.classList.add('btn-p');
+}
+function savePersonal(){
+  var ti=gv('pe-titolo').trim(),da=gv('pe-data'),tp=gv('pe-tipo');
+  if(!ti||!da){note('Inserisci titolo e data!',1);return;}
+  personalEvs.push({id:Date.now().toString(),titolo:ti,tipo:tp||'altro',data:da,ora:gv('pe-ora'),note:gv('pe-note')});
+  svPE();closeOv('ov-personal');rCal();note('Evento aggiunto! 🌸');
+}
+
+// ===== CLIENT LIST =====
+function rCli(list){
+  var el=document.getElementById('cli-list'),arr=list||clients;
+  if(!arr.length){el.innerHTML='<p style="font-size:.82rem;color:var(--light)">Nessun cliente. Tocca + Nuevo!</p>';return;}
+  el.innerHTML=arr.sort(function(a,b){return new Date(a.data||0)-new Date(b.data||0);}).map(function(c){
+    var t=tot(c),p=paid(c),r=t-p;
+    return '<div class="cli-card" onclick="openDetail(''+c.id+'')"><div><div class="cli-name">'+(c.alias||c.nome)+'</div><div class="cli-sub">'+tl(c.tipo)+' · '+fd(c.data)+'</div>'+(c.location?'<div class="cli-sub">'+c.location+'</div>':'')+'</div><div><div class="cli-amt">€ '+t.toLocaleString('it-IT')+'</div><div class="cli-res">'+(r>0?'<span style="color:var(--gold)">Res. € '+r.toLocaleString('it-IT')+'</span>':'<span style="color:var(--green)">Saldato</span>')+'</div></div></div>';
+  }).join('');
+}
+function filterCli(){
+  var q=document.getElementById('srch').value.toLowerCase();
+  rCli(clients.filter(function(c){return !q||c.nome.toLowerCase().includes(q)||(c.alias||'').toLowerCase().includes(q)||(c.location||'').toLowerCase().includes(q);}));
+}
+
+// ===== CLIENT DETAIL =====
+function openDetail(id){
+  curId=id;
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  document.getElementById('detail-title').textContent=c.alias||c.nome;
+  var t=tot(c),p=paid(c),r=t-p;
+  var h='<div class="fin-row"><div class="fin-box"><div class="fin-lbl">Totale</div><div class="fin-val vt">€ '+t.toLocaleString('it-IT')+'</div></div><div class="fin-box"><div class="fin-lbl">Versato</div><div class="fin-val vg">€ '+p.toLocaleString('it-IT')+'</div></div><div class="fin-box"><div class="fin-lbl">Residuo</div><div class="fin-val vw">€ '+r.toLocaleString('it-IT')+'</div></div></div>';
+  h+='<div class="card"><div class="g2" style="font-size:.82rem;">';
+  if(c.nome)h+='<div><span style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--light)">Nome</span><br>'+c.nome+'</div>';
+  if(c.tel)h+='<div><span style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--light)">Tel</span><br>'+c.tel+'</div>';
+  if(c.email)h+='<div><span style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--light)">Email</span><br>'+c.email+'</div>';
+  if(c.cf)h+='<div><span style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--light)">CF</span><br>'+c.cf+'</div>';
+  if(c.indirizzo)h+='<div style="grid-column:1/-1"><span style="font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--light)">Indirizzo</span><br>'+c.indirizzo+'</div>';
+  h+='</div></div>';
+  if((c.services||[]).length)h+='<div class="card"><div class="card-title">Servizi</div>'+c.services.map(function(s){return '<div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.82rem"><span>'+s.name+'</span><span>€ '+parseFloat(s.pc||0).toLocaleString('it-IT')+'</span></div>';}).join('')+'</div>';
+  if((c.fornitori||[]).length)h+='<div class="card"><div class="card-title">Fornitori</div>'+c.fornitori.map(function(f){return '<div style="font-size:.82rem;padding:.3rem 0;border-bottom:1px solid var(--border)"><strong>'+f.cat_label+'</strong> — '+(f.nome||'-')+'<br><span style="color:var(--light);font-size:.75rem">'+(f.ora_i?f.ora_i+' → '+f.ora_f:'')+(f.costo?' · € '+parseFloat(f.costo).toLocaleString('it-IT'):'')+'</span></div>';}).join('')+'</div>';
+  document.getElementById('detail-body').innerHTML=h;
+  document.getElementById('ov-detail').classList.add('on');
+}
+function editFromDetail(){closeOv('ov-detail');openClientForm(curId);}
+function contractFromDetail(){closeOv('ov-detail');document.getElementById('con-sel').value=curId;renderContract();showTab('contratto',document.querySelectorAll('.tb')[3]);}
+function deleteClient(){if(!confirm('Eliminare questo cliente?'))return;clients=clients.filter(function(c){return c.id!==curId;});sv();closeOv('ov-detail');rCli();rCal();rCont();pConSel();note('Eliminato');}
+
+// ===== CLIENT FORM =====
+function openClientForm(id){
+  var c=id?clients.find(function(x){return x.id===id;}):null;
+  document.getElementById('form-title').textContent=c?'Modifica: '+(c.alias||c.nome):'Nuevo Cliente';
+  document.getElementById('form-body').innerHTML=buildForm(c);
+  document.getElementById('ov-form').classList.add('on');
+  if(c&&c.tipo)loadFormServices(c.tipo,c.services||[]);
+}
+function buildForm(c){
+  var tipo_opts=['<option value="">Seleziona...</option>',
+    '<option value="matrimonio"'+(c&&c.tipo==='matrimonio'?' selected':'')+'>💒 Matrimonio</option>',
+    '<option value="quinceanos"'+(c&&c.tipo==='quinceanos'?' selected':'')+'>👑 Quinceañera</option>',
+    '<option value="fiesta_infantil"'+(c&&c.tipo==='fiesta_infantil'?' selected':'')+'>🎈 Fiesta Infantil</option>',
+    '<option value="cumpleanos"'+(c&&c.tipo==='cumpleanos'?' selected':'')+'>🎂 Cumpleaños</option>',
+    '<option value="baby_shower"'+(c&&c.tipo==='baby_shower'?' selected':'')+'>👶 Baby Shower / Gender Reveal</option>',
+    '<option value="empresarial"'+(c&&c.tipo==='empresarial'?' selected':'')+'>🏢 Evento Empresarial</option>',
+    '<option value="ceremonia"'+(c&&c.tipo==='ceremonia'?' selected':'')+'>⛪ Ceremonia</option>'
+  ].join('');
+
+  var h='<div style="padding-bottom:1.5rem">';
+  // CLIENTE
+  h+='<div class="card"><div class="card-title">👤 Dati Cliente</div>';
+  h+='<div class="g2">';
+  h+='<div class="fg full"><label>Nome Completo *</label><input id="f-nome" type="text" autocorrect="off" value="'+(c?c.nome||'':'')+'"></div>';
+  h+='<div class="fg full"><label>Alias / Nome Evento</label><input id="f-alias" type="text" autocorrect="off" value="'+(c?c.alias||'':'')+'" placeholder="es. Matrimonio Valentina e Carlos"></div>';
+  h+='<div class="fg"><label>Telefono</label><input id="f-tel" type="tel" value="'+(c?c.tel||'':'')+'"></div>';
+  h+='<div class="fg"><label>Email</label><input id="f-email" type="email" autocorrect="off" value="'+(c?c.email||'':'')+'"></div>';
+  h+='<div class="fg"><label>Codice Fiscale</label><input id="f-cf" type="text" autocapitalize="characters" value="'+(c?c.cf||'':'')+'"></div>';
+  h+='<div class="fg full"><label>Indirizzo Cliente</label><input id="f-indirizzo" type="text" autocorrect="off" value="'+(c?c.indirizzo||'':'')+'"></div>';
+  h+='</div></div>';
+  // EVENTO
+  h+='<div class="card"><div class="card-title">🎊 Dati Evento</div>';
+  h+='<div class="g2">';
+  h+='<div class="fg"><label>Categoria *</label><select id="f-tipo" onchange="loadFormServices(this.value,[])">'+tipo_opts+'</select></div>';
+  h+='<div class="fg"><label>Data Evento *</label><input id="f-data" type="date" value="'+(c?c.data||'':'')+'"></div>';
+  h+='<div class="fg"><label>Ora Inizio</label><input id="f-orai" type="time" value="'+(c?c.oraI||'':'')+'"></div>';
+  h+='<div class="fg"><label>Ora Fine</label><input id="f-oraf" type="time" value="'+(c?c.oraF||'':'')+'"></div>';
+  h+='<div class="fg full"><label>Location</label><input id="f-loc" type="text" autocorrect="off" value="'+(c?c.location||'':'')+'"></div>';
+  h+='<div class="fg full" id="loc2-wrap" style="'+(c&&c.location2?'':'display:none')+'"><label>Seconda Location</label><input id="f-loc2" type="text" autocorrect="off" value="'+(c?c.location2||'':'')+'"></div>';
+  h+='<div class="fg full"><button type="button" onclick="toggleLoc2()" style="background:none;border:1px solid var(--rose);border-radius:6px;padding:5px 12px;font-size:.72rem;color:var(--rose);cursor:pointer;touch-action:manipulation">+ Seconda location</button></div>';
+  h+='<div class="fg"><label>Ospiti</label><input id="f-ospiti" type="number" value="'+(c?c.ospiti||'':'')+'"></div>';
+  h+='<div class="fg"><label>Colori</label><input id="f-colore" type="text" autocorrect="off" value="'+(c?c.colore||'':'')+'"></div>';
+  h+='<div class="fg"><label>Tematica</label><input id="f-tema" type="text" autocorrect="off" value="'+(c?c.tema||'':'')+'"></div>';
+  h+='</div></div>';
+  // SERVICES
+  h+='<div class="card" id="srv-card" style="display:none"><div class="card-title">✨ Servizi</div><div id="srv-list"></div></div>';
+  // FORNITORI
+  h+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem"><div class="card-title" style="margin-bottom:0">🤝 Collaboratori</div><button type="button" class="btn btn-s btn-sm" onclick="addForn()">+ Aggiungi</button></div><div id="forn-list"></div></div>';
+  // PAGAMENTI
+  h+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem"><div class="card-title" style="margin-bottom:0">💶 Pagamenti</div><button type="button" class="btn btn-s btn-sm" onclick="addPag()">+ Pagamento</button></div>';
+  h+='<div class="fin-row"><div class="fin-box"><div class="fin-lbl">Totale Servizi</div><div class="fin-val vt" id="f-tot">€ 0</div></div><div class="fin-box"><div class="fin-lbl">Versato</div><div class="fin-val vg" id="f-ver">€ 0</div></div><div class="fin-box"><div class="fin-lbl">Residuo</div><div class="fin-val vw" id="f-res">€ 0</div></div></div>';
+  h+='<div id="pag-list"></div></div>';
+  // NOTE
+  h+='<div class="card"><div class="card-title">📝 Note</div><textarea id="f-note" autocorrect="off">'+(c?c.note||'':'')+'</textarea></div>';
+  // BUTTONS
+  h+='<div style="display:flex;gap:.5rem;padding-bottom:1rem"><button class="btn btn-p" onclick="saveClient()">Salva Cliente</button></div>';
+  h+='<input type="hidden" id="f-id" value="'+(c?c.id:'')+'"></div>';
+
+  // Init fornitori and pagamenti from existing client
+  setTimeout(function(){
+    window._forn = c&&c.fornitori?JSON.parse(JSON.stringify(c.fornitori)):[];
+    window._pag = c&&c.pagamenti?JSON.parse(JSON.stringify(c.pagamenti)):[];
+    rForn();rPag();updTotals();
+  },50);
+
+  return h;
+}
+
+function toggleLoc2(){var w=document.getElementById('loc2-wrap');if(w)w.style.display=w.style.display==='none'?'block':'none';}
+
+// SERVICES
+function loadFormServices(tipo,saved){
+  var card=document.getElementById('srv-card'),list=document.getElementById('srv-list');
+  if(!card||!list)return;
+  if(!tipo){card.style.display='none';return;}
+  var svcs=SERVICES_BY_CAT[tipo]||[];
+  if(!svcs.length){card.style.display='none';return;}
+  card.style.display='block';
+  var savedNames=(saved||[]).map(function(s){return s.name;});
+  list.innerHTML=svcs.map(function(name){
+    var sv=saved&&saved.find(function(s){return s.name===name;});
+    return '<div class="srv-item"><input type="checkbox" id="sc-'+btoa(name).replace(/=/g,'').substring(0,10)+'"'+(sv?' checked':'')+' onchange="updTotals()"><label for="sc-'+btoa(name).replace(/=/g,'').substring(0,10)+'">'+name+'</label><input type="number" placeholder="€" value="'+(sv?sv.pc||'':'')+'" oninput="updTotals()" style="width:80px;font-size:.8rem;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--cream);text-align:right;flex-shrink:0;-webkit-appearance:none"></div>';
+  }).join('');
+  updTotals();
+}
+
+function getSrvData(){
+  var tipo=gv('f-tipo'),svcs=SERVICES_BY_CAT[tipo]||[];
+  var res=[];
+  svcs.forEach(function(name){
+    var cb=document.getElementById('sc-'+btoa(name).replace(/=/g,'').substring(0,10));
+    if(cb&&cb.checked){
+      var inp=cb.parentElement.querySelector('input[type=number]');
+      res.push({name:name,pc:inp?inp.value:''});
+    }
+  });
+  return res;
+}
+
+// FORNITORI
+window._forn=[];
+function addForn(){
+  window._forn.push({cat:'',cat_label:'',nome:'',ora_i:'',ora_f:'',costo:'',desc:''});
+  rForn();
+}
+function rForn(){
+  var el=document.getElementById('forn-list');
+  if(!el)return;
+  if(!window._forn.length){el.innerHTML='<p style="font-size:.78rem;color:var(--light)">Nessun collaboratore</p>';return;}
+  el.innerHTML=window._forn.map(function(f,i){
+    var catOpts=FORN_CATS.map(function(c){return '<option value="'+c.v+'"'+(f.cat===c.v?' selected':'')+'>'+c.l+'</option>';}).join('');
+    return '<div class="forn-item"><div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><strong style="font-size:.85rem;color:var(--bur)">'+(f.cat_label||'Collaboratore '+(i+1))+'</strong><button type="button" class="btn btn-d btn-sm" onclick="window._forn.splice('+i+',1);rForn()">✕</button></div>'
+      +'<div class="g2">'
+      +'<div class="fg"><label>Categoria</label><select onchange="window._forn['+i+'].cat=this.value;window._forn['+i+'].cat_label=this.options[this.selectedIndex].text;rForn()" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"><option value="">Seleziona...</option>'+catOpts+'</select></div>'
+      +'<div class="fg"><label>Nome</label><input type="text" value="'+(f.nome||'')+'" oninput="window._forn['+i+'].nome=this.value" autocorrect="off" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
+      +'<div class="fg"><label>Ora Inizio</label><input type="time" value="'+(f.ora_i||'')+'" oninput="window._forn['+i+'].ora_i=this.value" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
+      +'<div class="fg"><label>Ora Fine</label><input type="time" value="'+(f.ora_f||'')+'" oninput="window._forn['+i+'].ora_f=this.value" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
+      +'<div class="fg"><label>Costo Reale € (uso interno)</label><input type="number" value="'+(f.costo||'')+'" oninput="window._forn['+i+'].costo=this.value" placeholder="0" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"></div>'
+      +'<div class="fg full"><label>Descrizione</label><textarea oninput="window._forn['+i+'].desc=this.value" style="font-size:.8rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);min-height:60px;width:100%;resize:vertical">'+( f.desc||'')+'</textarea></div>'
+      +'</div></div>';
+  }).join('');
+}
+
+// PAGAMENTI
+window._pag=[];
+function addPag(){
+  window._pag.push({data:'',imp:'',met:'Bonifico',stato:'Pagato'});
+  rPag();updTotals();
+}
+function rPag(){
+  var el=document.getElementById('pag-list');
+  if(!el)return;
+  if(!window._pag.length){el.innerHTML='<p style="font-size:.78rem;color:var(--light)">Nessun pagamento</p>';return;}
+  el.innerHTML=window._pag.map(function(p,i){
+    return '<div style="display:grid;grid-template-columns:auto 1fr auto auto auto;gap:.4rem;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border)">'
+      +'<div style="font-size:.62rem;font-weight:600;color:var(--light);background:#F0E6D3;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center">'+(i+1)+'</div>'
+      +'<input type="date" value="'+(p.data||'')+'" oninput="window._pag['+i+'].data=this.value" style="font-size:.75rem;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--cream)">'
+      +'<input type="number" value="'+(p.imp||'')+'" oninput="window._pag['+i+'].imp=this.value;updTotals()" placeholder="€" style="font-size:.75rem;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:var(--cream);width:75px;-webkit-appearance:none">'
+      +'<select oninput="window._pag['+i+'].stato=this.value" style="font-size:.7rem;padding:4px 5px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"><option'+(p.stato==='Pagato'?' selected':'')+'>Pagato</option><option'+(p.stato==='In attesa'?' selected':'')+'>In attesa</option></select>'
+      +'<button type="button" class="btn btn-d btn-sm" onclick="window._pag.splice('+i+',1);rPag();updTotals()">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+function updTotals(){
+  var srvData=getSrvData();
+  var total=srvData.reduce(function(s,x){return s+(parseFloat(x.pc)||0);},0);
+  var ver=window._pag.filter(function(p){return p.stato==='Pagato';}).reduce(function(s,x){return s+(parseFloat(x.imp)||0);},0);
+  function sv(id,v){var e=document.getElementById(id);if(e)e.textContent='€ '+v.toLocaleString('it-IT');}
+  sv('f-tot',total);sv('f-ver',ver);sv('f-res',total-ver);
+}
+
+// SAVE CLIENT
+function saveClient(){
+  var nome=gv('f-nome').trim();
+  if(!nome){note('Inserisci il nome del cliente!',1);return;}
+  var id=gv('f-id')||Date.now().toString();
+  var c={
+    id:id, nome:nome, alias:gv('f-alias'), tel:gv('f-tel'), email:gv('f-email'),
+    cf:gv('f-cf'), indirizzo:gv('f-indirizzo'), tipo:gv('f-tipo'),
+    data:gv('f-data'), oraI:gv('f-orai'), oraF:gv('f-oraf'),
+    location:gv('f-loc'), location2:gv('f-loc2'),
+    ospiti:gv('f-ospiti'), colore:gv('f-colore'), tema:gv('f-tema'),
+    services:getSrvData(), fornitori:JSON.parse(JSON.stringify(window._forn)),
+    pagamenti:JSON.parse(JSON.stringify(window._pag)), note:gv('f-note')
+  };
+  var ix=clients.findIndex(function(x){return x.id===id;});
+  if(ix>=0)clients[ix]=c;else clients.push(c);
+  sv();rCli();rCal();rCont();pConSel();
+  closeOv('ov-form');note('Cliente salvato! 🌸');
+}
+
+// CONTABILITA
+function rCont(){
+  var tC=0,tV=0,tR=0;
+  document.getElementById('cont-table').innerHTML=clients.map(function(c){
+    var t=tot(c),p=paid(c),r=t-p;tC+=t;tV+=p;tR+=r;
+    var st=r<=0?'<span class="badge b-ok">Saldato</span>':p>0?'<span class="badge b-warn">Parziale</span>':'<span class="badge b-no">Attesa</span>';
+    return '<tr onclick="openDetail(''+c.id+'')" style="cursor:pointer"><td><strong>'+(c.alias||c.nome)+'</strong></td><td>'+tl(c.tipo)+'</td><td>'+fd(c.data)+'</td><td>€ '+t.toLocaleString('it-IT')+'</td><td style="color:var(--green)">€ '+p.toLocaleString('it-IT')+'</td><td style="color:'+(r>0?'var(--gold)':'var(--green)')+'">€ '+r.toLocaleString('it-IT')+'</td><td>'+st+'</td></tr>';
+  }).join('')+'<tr class="tr-tot"><td colspan="3">TOTALE</td><td>€ '+tC.toLocaleString('it-IT')+'</td><td>€ '+tV.toLocaleString('it-IT')+'</td><td>€ '+tR.toLocaleString('it-IT')+'</td><td></td></tr>';
+  document.getElementById('fin-summary').innerHTML='<div class="fin-box"><div class="fin-lbl">Totale</div><div class="fin-val vt">€ '+tC.toLocaleString('it-IT')+'</div></div><div class="fin-box"><div class="fin-lbl">Incassato</div><div class="fin-val vg">€ '+tV.toLocaleString('it-IT')+'</div></div><div class="fin-box"><div class="fin-lbl">Da Incassare</div><div class="fin-val vw">€ '+tR.toLocaleString('it-IT')+'</div></div>';
+}
+
+// CONTRACT
+function pConSel(){
+  var o='<option value="">Scegli cliente...</option>'+clients.map(function(c){return '<option value="'+c.id+'">'+(c.alias||c.nome)+' - '+fd(c.data)+'</option>';}).join('');
+  var e=document.getElementById('con-sel');if(e)e.innerHTML=o;
+}
+function renderContract(){
+  var id=gv('con-sel'),el=document.getElementById('contract-out');
+  if(!id){el.innerHTML='';return;}
+  var c=clients.find(function(x){return x.id===id;});
+  if(!c)return;
+  var t=tot(c),p=paid(c),r=t-p;
+  var srvRows=(c.services||[]).map(function(s){return '<tr><td>'+s.name+'</td><td style="text-align:right;font-weight:600">€ '+parseFloat(s.pc||0).toLocaleString('it-IT')+'</td></tr>';}).join('');
+  el.innerHTML='<div class="contract"><div style="text-align:center;margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">'
+    +'<div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--bur)">Bella Festa Milano</div>'
+    +'<div style="font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--light);margin:.2rem 0">P.IVA 14245070967</div>'
+    +'<div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--bur);margin-top:.5rem">Contratto — '+tl(c.tipo)+'</div>'
+    +'</div>'
+    +'<div style="margin-bottom:1rem;font-size:.82rem"><strong>Cliente:</strong> '+c.nome+(c.cf?' | CF: '+c.cf:'')+'<br><strong>Data Evento:</strong> '+fd(c.data)+(c.oraI?' ore '+c.oraI:'')+(c.location?'<br><strong>Location:</strong> '+c.location:'')+'</div>'
+    +(srvRows?'<div class="twrap" style="margin-bottom:1rem"><table><thead><tr><th>Servizio</th><th style="text-align:right">Prezzo</th></tr></thead><tbody>'+srvRows+'<tr class="tr-tot"><td>TOTALE</td><td style="text-align:right">€ '+t.toLocaleString('it-IT')+'</td></tr></tbody></table></div>':'')
+    +'<div style="font-size:.78rem;line-height:1.8;margin-bottom:1.2rem"><strong>Condizioni:</strong><br>1. Saldo finale in contanti prima dell'evento.<br>2. Acconti non rimborsabili.<br>3. Modifiche entro 15 giorni dall'evento.<br>4. La firma implica accettazione delle condizioni.</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)">'
+    +'<div><div style="border-bottom:1px solid var(--text);margin-bottom:.3rem;height:40px"></div><div style="font-family:'Cormorant Garamond',serif;font-size:.9rem;font-style:italic;color:var(--bur)">Katherinne Fernández</div><div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--light)">Event Planner</div></div>'
+    +'<div><div style="border-bottom:1px solid var(--text);margin-bottom:.3rem;height:40px"></div><div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--light)">Firma Cliente</div></div>'
+    +'</div></div>'
+    +'<div style="display:flex;gap:.5rem;margin-top:.75rem"><button class="btn btn-p btn-sm" onclick="window.print()">🖨️ Stampa / PDF</button></div>';
+}
+
+// SETUP
+function showSetup(){
+  sv2('s-id',cfg.sheetId);sv2('s-email',cfg.email);sv2('s-key',cfg.key);
+  document.getElementById('ov-setup').classList.add('on');
+}
+function saveSetup(){
+  cfg={sheetId:gv('s-id').trim(),email:gv('s-email').trim(),key:gv('s-key').trim()};
+  localStorage.setItem('bfm_cfg',JSON.stringify(cfg));
+  closeOv('ov-setup');note('Salvato!');
+}
+
+// FICHA TECNICA FORNITORE
+function printFicha(clientId){
+  var c=clients.find(function(x){return x.id===clientId;});
+  if(!c||(c.fornitori||[]).length===0){note('Nessun collaboratore da stampare',1);return;}
+  var ficheHtml=c.fornitori.map(function(f){
+    return '<div style="page-break-after:always;padding:2rem;font-family:Georgia,serif;max-width:680px;margin:0 auto">'
+      +'<div style="border-top:4px solid #6B3D2E;padding-top:1.2rem;margin-bottom:1.2rem">'
+      +'<div style="font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:#9B7E6A">Bella Festa Milano — Scheda Tecnica</div>'
+      +'<div style="font-size:1.4rem;font-weight:600;color:#6B3D2E;margin-top:.2rem">'+(f.cat_label||'Collaboratore')+'</div>'
+      +'<div style="font-size:.75rem;color:#9B7E6A;margin-top:.3rem">Evento: <strong>'+(c.alias||c.nome)+'</strong> · Data: <strong>'+fd(c.data)+'</strong>'+(c.location?' · Location: <strong>'+c.location+'</strong>':'')+'</div>'
+      +'</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:.85rem;margin-bottom:1.2rem">'
+      +'<tr style="background:#FAF6F0"><td style="padding:.45rem .7rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E;width:35%">Nome</td><td style="padding:.45rem .7rem;border:1px solid #E5D0BA">'+(f.nome||'-')+'</td></tr>'
+      +'<tr><td style="padding:.45rem .7rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E">Ora Inizio</td><td style="padding:.45rem .7rem;border:1px solid #E5D0BA;font-weight:600">'+(f.ora_i||'-')+'</td></tr>'
+      +'<tr style="background:#FAF6F0"><td style="padding:.45rem .7rem;border:1px solid #E5D0BA;font-weight:600;color:#6B3D2E">Ora Fine</td><td style="padding:.45rem .7rem;border:1px solid #E5D0BA;font-weight:600">'+(f.ora_f||'-')+'</td></tr>'
+      +'</table>'
+      +(f.desc?'<div style="background:#FAF6F0;border:1px solid #E5D0BA;border-radius:8px;padding:.9rem;margin-bottom:1.2rem"><div style="font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:#9B7E6A;margin-bottom:.4rem">Descrizione Servizio</div><div style="font-size:.85rem;line-height:1.7">'+f.desc+'</div></div>':'')
+      +'<div style="background:#2C1F14;color:#FAF6F0;border-radius:8px;padding:1rem">'
+      +'<div style="font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:#C4A87A;margin-bottom:.5rem">👗 Dress Code — Bella Festa Milano</div>'
+      +'<div style="font-size:.8rem;line-height:1.8"><strong style="color:#C4A87A">Total Black</strong> — Pantalón negro · Zapatillas negras · Polo o camisa negra<br>'
+      +'Mujeres: Cabello recogido · Maquillaje sutil · Hombres: Peinado con gel<br>'
+      +'<span style="color:#9B7E6A;font-size:.72rem;font-style:italic">Sugerencia obligatoria. Gracias por ser parte del equipo Bella Festa Milano 🌸</span></div>'
+      +'</div>'
+      +'<div style="text-align:center;margin-top:1.2rem;font-size:.62rem;color:#9B7E6A;border-top:1px solid #E5D0BA;padding-top:.6rem">Bella Festa Milano · bellafestamilano@icloud.com · +39 380 752 8684</div>'
+      +'</div>';
+  }).join('');
+  var w=window.open('','_blank');
+  w.document.write('<html><head><title>Schede Tecniche</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff}</style></head><body>'+ficheHtml+'</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},400);
+}
+
+// INIT
+rCal();rCli();rCont();pConSel();
+</script>
+</body>
+</html>
