@@ -438,7 +438,8 @@ function buildForm(c){
   // EVENTO
   h+='<div class="card"><div class="card-title">🎊 Dati Evento</div>';
   h+='<div class="g2">';
-  h+='<div class="fg"><label>Categoria *</label><select id="f-tipo" onchange="loadFormServices(this.value,[])">'+tipo_opts+'</select></div>';
+  h+='<div class="fg"><label>Categoria *</label><select id="f-tipo">'+tipo_opts+'</select></div>';
+  h+='<div class="fg full"><button type="button" onclick="loadFormServices(document.getElementById(\'f-tipo\').value,[])" style="background:var(--bur);color:var(--cream);border:none;border-radius:8px;padding:.6rem 1.2rem;font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;touch-action:manipulation;width:100%">&#10003; Carica Servizi per Categoria</button></div>';
   h+='<div class="fg"><label>Data Evento *</label><input id="f-data" type="date" value="'+(c?c.data||'':'')+'"></div>';
   h+='<div class="fg"><label>Ora Inizio</label><input id="f-orai" type="time" value="'+(c?c.oraI||'':'')+'"></div>';
   h+='<div class="fg"><label>Ora Fine</label><input id="f-oraf" type="time" value="'+(c?c.oraF||'':'')+'"></div>';
@@ -513,23 +514,24 @@ function addForn(){
 function rForn(){
   var el=document.getElementById('forn-list');
   if(!el)return;
-  if(!window._forn.length){el.innerHTML='<p style="font-size:.78rem;color:var(--light)">Nessun collaboratore</p>';return;}
+  if(!window._forn.length){el.innerHTML='<p style="font-size:.78rem;color:var(--light)">Nessun collaboratore aggiunto</p>';return;}
   el.innerHTML=window._forn.map(function(f,i){
     var catOpts=FORN_CATS.map(function(c){return '<option value="'+c.v+'"'+(f.cat===c.v?' selected':'')+'>'+c.l+'</option>';}).join('');
-    return '<div class="forn-item"><div style="display:flex;justify-content:space-between;margin-bottom:.5rem"><strong style="font-size:.85rem;color:var(--bur)">'+(f.cat_label||'Collaboratore '+(i+1))+'</strong><button type="button" class="btn btn-d btn-sm" onclick="window._forn.splice('+i+',1);rForn()">✕</button></div>'
+    var res=(parseFloat(f.prezzo||0)-parseFloat(f.acconto||0));
+    return '<div class="forn-item"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.65rem"><strong style="font-size:.85rem;color:var(--bur)">'+(f.cat_label||'Collaboratore '+(i+1))+'</strong><button type="button" class="btn btn-d btn-sm" onclick="window._forn.splice('+i+',1);rForn()">✕</button></div>'
       +'<div class="g2">'
-      +'<div class="fg"><label>Categoria</label><select onchange="window._forn['+i+'].cat=this.value;window._forn['+i+'].cat_label=this.options[this.selectedIndex].text;rForn()" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"><option value="">Seleziona...</option>'+catOpts+'</select></div>'
-      +'<div class="fg"><label>Nome</label><input type="text" value="'+(f.nome||'')+'" oninput="window._forn['+i+'].nome=this.value" autocorrect="off" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
+      +'<div class="fg full"><label>Servizio</label><select onchange="window._forn['+i+'].cat=this.value;window._forn['+i+'].cat_label=this.options[this.selectedIndex].text;rForn()" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none;width:100%"><option value="">Seleziona servizio...</option>'+catOpts+'</select></div>'
+      +'<div class="fg full"><label>Nome Fornitore</label><input type="text" value="'+(f.nome||'')+'" oninput="window._forn['+i+'].nome=this.value" autocorrect="off" placeholder="es. Javier, Studio Foto X..." style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);width:100%"></div>'
       +'<div class="fg"><label>Ora Inizio</label><input type="time" value="'+(f.ora_i||'')+'" oninput="window._forn['+i+'].ora_i=this.value" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
       +'<div class="fg"><label>Ora Fine</label><input type="time" value="'+(f.ora_f||'')+'" oninput="window._forn['+i+'].ora_f=this.value" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
-      +'<div class="fg"><label>Costo Reale € (uso interno)</label><input type="number" value="'+(f.costo||'')+'" oninput="window._forn['+i+'].costo=this.value" placeholder="0" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"></div>'
-      +'<div class="fg full"><label>Descrizione</label><textarea oninput="window._forn['+i+'].desc=this.value" style="font-size:.8rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);min-height:60px;width:100%;resize:vertical">'+( f.desc||'')+'</textarea></div>'
+      +'<div class="fg"><label>Prezzo Accordato €</label><input type="number" value="'+(f.prezzo||'')+'" oninput="window._forn['+i+'].prezzo=this.value;rForn()" placeholder="0" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"></div>'
+      +'<div class="fg"><label>Acconto Dato €</label><input type="number" value="'+(f.acconto||'')+'" oninput="window._forn['+i+'].acconto=this.value;rForn()" placeholder="0" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"></div>'
+      +'<div class="fg"><label>Saldo Restante</label><div style="font-size:.9rem;font-weight:600;padding:5px 0;color:'+(res>0?'#C4965A':'var(--green)')+';">€ '+res.toLocaleString('it-IT')+'</div></div>'
+      +'<div class="fg full"><label>Descrizione (uso interno)</label><textarea oninput="window._forn['+i+'].desc=this.value" placeholder="Orario, dettagli, note importanti..." style="font-size:.8rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);min-height:65px;width:100%;resize:vertical">'+(f.desc||'')+'</textarea></div>'
       +'</div></div>';
   }).join('');
 }
 
-// PAGAMENTI
-window._pag=[];
 function addPag(){
   window._pag.push({data:'',imp:'',met:'Bonifico',stato:'Pagato'});
   rPag();updTotals();
