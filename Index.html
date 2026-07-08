@@ -429,7 +429,7 @@ function buildForm(c){
   h+='<div class="card"><div class="card-title">👤 Dati Cliente</div>';
   h+='<div class="g2">';
   h+='<div class="fg full"><label>Nome Completo *</label><input id="f-nome" type="text" autocorrect="off" value="'+(c?c.nome||'':'')+'"></div>';
-  h+='<div class="fg full"><label>Alias / Nome Evento</label><input id="f-alias" type="text" autocorrect="off" value="'+(c?c.alias||'':'')+'" placeholder="es. Matrimonio Valentina e Carlos"></div>';
+  h+='<div class="fg full"><label>Alias / Nome Evento</label><input id="f-alias" type="text" autocorrect="off" value="'+(c?c.alias||'':'')+'" placeholder=""></div>';
   h+='<div class="fg"><label>Telefono</label><input id="f-tel" type="tel" value="'+(c?c.tel||'':'')+'"></div>';
   h+='<div class="fg"><label>Email</label><input id="f-email" type="email" autocorrect="off" value="'+(c?c.email||'':'')+'"></div>';
   h+='<div class="fg"><label>Codice Fiscale</label><input id="f-cf" type="text" autocapitalize="characters" value="'+(c?c.cf||'':'')+'"></div>';
@@ -438,7 +438,7 @@ function buildForm(c){
   // EVENTO
   h+='<div class="card"><div class="card-title">🎊 Dati Evento</div>';
   h+='<div class="g2">';
-  h+='<div class="fg"><label>Categoria *</label><select id="f-tipo">'+tipo_opts+'</select></div>';
+  h+='<div class="fg"><label>Categoria *</label><select id="f-tipo" onchange="setTimeout(function(){loadFormServices(document.getElementById('f-tipo').value,[]);},50)">'+tipo_opts+'</select></div>';
   h+='<div class="fg full"><button type="button" onclick="loadFormServices(document.getElementById(\'f-tipo\').value,[])" style="background:var(--bur);color:var(--cream);border:none;border-radius:8px;padding:.6rem 1.2rem;font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;touch-action:manipulation;width:100%">&#10003; Carica Servizi per Categoria</button></div>';
   h+='<div class="fg"><label>Data Evento *</label><input id="f-data" type="date" value="'+(c?c.data||'':'')+'"></div>';
   h+='<div class="fg"><label>Ora Inizio</label><input id="f-orai" type="time" value="'+(c?c.oraI||'':'')+'"></div>';
@@ -487,16 +487,23 @@ function loadFormServices(tipo,saved){
   var savedNames=(saved||[]).map(function(s){return s.name;});
   list.innerHTML=svcs.map(function(name){
     var sv=saved&&saved.find(function(s){return s.name===name;});
-    return '<div class="srv-item"><input type="checkbox" id="sc-'+btoa(name).replace(/=/g,'').substring(0,10)+'"'+(sv?' checked':'')+' onchange="updTotals()"><label for="sc-'+btoa(name).replace(/=/g,'').substring(0,10)+'">'+name+'</label><input type="number" placeholder="€" value="'+(sv?sv.pc||'':'')+'" oninput="updTotals()" style="width:80px;font-size:.8rem;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--cream);text-align:right;flex-shrink:0;-webkit-appearance:none"></div>';
+    var sid=srvId(name);
+    return '<div class="srv-item"><input type="checkbox" id="'+sid+'"'+(sv?' checked':'')+' onchange="updTotals()"><label for="'+sid+'">'+name+'</label><input type="number" placeholder="€" value="'+(sv?sv.pc||'':'')+'" oninput="updTotals()" style="width:80px;font-size:.8rem;padding:3px 6px;border:1px solid var(--border);border-radius:6px;background:var(--cream);text-align:right;flex-shrink:0;-webkit-appearance:none"></div>';
   }).join('');
   updTotals();
+}
+
+function srvId(name){
+  // Simple hash - avoid btoa which can fail on special chars
+  var h=0;for(var i=0;i<name.length;i++){h=((h<<5)-h)+name.charCodeAt(i);h|=0;}
+  return 'sc'+(h<0?'n'+Math.abs(h):h);
 }
 
 function getSrvData(){
   var tipo=gv('f-tipo'),svcs=SERVICES_BY_CAT[tipo]||[];
   var res=[];
   svcs.forEach(function(name){
-    var cb=document.getElementById('sc-'+btoa(name).replace(/=/g,'').substring(0,10));
+    var cb=document.getElementById(srvId(name));
     if(cb&&cb.checked){
       var inp=cb.parentElement.querySelector('input[type=number]');
       res.push({name:name,pc:inp?inp.value:''});
@@ -521,7 +528,7 @@ function rForn(){
     return '<div class="forn-item"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.65rem"><strong style="font-size:.85rem;color:var(--bur)">'+(f.cat_label||'Collaboratore '+(i+1))+'</strong><button type="button" class="btn btn-d btn-sm" onclick="window._forn.splice('+i+',1);rForn()">✕</button></div>'
       +'<div class="g2">'
       +'<div class="fg full"><label>Servizio</label><select onchange="window._forn['+i+'].cat=this.value;window._forn['+i+'].cat_label=this.options[this.selectedIndex].text;rForn()" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none;width:100%"><option value="">Seleziona servizio...</option>'+catOpts+'</select></div>'
-      +'<div class="fg full"><label>Nome Fornitore</label><input type="text" value="'+(f.nome||'')+'" oninput="window._forn['+i+'].nome=this.value" autocorrect="off" placeholder="es. Javier, Studio Foto X..." style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);width:100%"></div>'
+      +'<div class="fg full"><label>Nome Fornitore</label><input type="text" value="'+(f.nome||'')+'" oninput="window._forn['+i+'].nome=this.value" autocorrect="off" placeholder="" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);width:100%"></div>'
       +'<div class="fg"><label>Ora Inizio</label><input type="time" value="'+(f.ora_i||'')+'" oninput="window._forn['+i+'].ora_i=this.value" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
       +'<div class="fg"><label>Ora Fine</label><input type="time" value="'+(f.ora_f||'')+'" oninput="window._forn['+i+'].ora_f=this.value" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream)"></div>'
       +'<div class="fg"><label>Prezzo Accordato €</label><input type="number" value="'+(f.prezzo||'')+'" oninput="window._forn['+i+'].prezzo=this.value;rForn()" placeholder="0" style="font-size:.82rem;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--cream);-webkit-appearance:none"></div>'
